@@ -15,12 +15,14 @@ sub githubmeta {
   return unless $self->can_run('git');
   return unless my ($git_url) = `git remote show -n origin` =~ /URL: (.*)$/m;
   return unless $git_url =~ /github\.com/; # Not a Github repository
-  my $http_url = $git_url;
-  $git_url =~ s![\w\-]+\@([^:]+):!git://$1/!;
-  $http_url =~ s![\w\-]+\@([^:]+):!http://$1/!;
-  $http_url =~ s!\.git$!/tree!;
-  $self->repository( $git_url );
-  $self->homepage( $http_url ) unless $self->homepage();
+
+  my ($user, $repo) = ( $git_url =~ m{github[.]com[:/]([^/]+)/([^/]+)$} );
+  $self->repository( "git://github.com/$user/$repo" );
+  $self->homepage( "http://github.com/$user/$repo" )
+    unless $self->homepage();
+  $self->bugtracker( "http://github.com/$user/$repo/issues" )
+    unless $self->bugtracker();
+
   return 1;
 }
 
@@ -64,7 +66,7 @@ The C<repository> and C<homepage> meta in C<META.yml> will be set accordingly.
 Module::Install::GithubMeta is a L<Module::Install> extension to include GitHub L<http://github.com> meta
 information in C<META.yml>.
 
-It automatically detects if the distribution directory is under C<git> version control and whether the 
+It automatically detects if the distribution directory is under C<git> version control and whether the
 C<origin> is a GitHub repository and will set the C<repository> and C<homepage> meta in C<META.yml> to the
 appropriate URLs for GitHub.
 
